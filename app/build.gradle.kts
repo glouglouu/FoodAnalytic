@@ -2,13 +2,12 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.google.devtools.ksp)
 }
 
 android {
     namespace = "com.example.foodanalytic"
-    compileSdk {
-        version = release(36)
-    }
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.example.foodanalytic"
@@ -42,6 +41,14 @@ android {
 }
 
 dependencies {
+    // Les bibliothèques Room de base
+    implementation(libs.androidx.room.runtime)
+    implementation(libs.androidx.room.ktx) // Support des Coroutines et Flow
+    ksp(libs.androidx.room.compiler) // Processeur de code Room
+    // Outils pour lier la base de données à l'interface Compose
+    implementation(libs.androidx.lifecycle.runtime.compose)
+    implementation(libs.kotlinx.coroutines.android)
+
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
