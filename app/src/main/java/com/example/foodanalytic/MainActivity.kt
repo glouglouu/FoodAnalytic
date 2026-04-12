@@ -19,14 +19,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewScreenSizes
 import androidx.room.Room
-import com.example.foodanalytic.api.schema.AppDb
-import com.example.foodanalytic.api.schema.User
+import com.example.foodanalytic.api.model.User
+import com.example.foodanalytic.api.data.AppDb
 import com.example.foodanalytic.ui.screens.FavoritesScreen
 import com.example.foodanalytic.ui.screens.HomeScreen
 import com.example.foodanalytic.ui.screens.ProfileScreen
@@ -55,7 +54,7 @@ class MainActivity : ComponentActivity() {
              * OBSERVATION DES DONNÉES (Le "Tuyau")
              * collectAsState : Transforme le Flow du DAO en un état lisible par
             Compose.
-             * Dès que Room change, la variable 'tasks' est mise à jour et l'écran
+             * Dès que Room change, la variable 'users' est mise à jour et l'écran
             se rafraîchit.
              */
             val users by dao.getAll().collectAsState(initial = emptyList())
@@ -68,40 +67,20 @@ class MainActivity : ComponentActivity() {
              */
             val scope = rememberCoroutineScope()
             var text by remember { mutableStateOf("") }
+//             LISTE DYNAMIQUE
 
-            Row {
-                TextField(
-                    value = text,
-                    onValueChange = { text = it },
-                    modifier = Modifier.weight(1f),
-                    placeholder = { Text("Faire...") }
-                )
+            FoodAnalyticTheme {
+                Row {
+                    Text("Liste des utilisateurs")
+                    LazyColumn {
+                        // Pour chaque utilisateur dans la liste "users"
+                        items(users) { user ->
+                            // Un bouton qui affiche le nom d'utilisateur
 
-                Button(onClick = {
-                    // On lance une Coroutine pour insérer sans figer l'écran
-                    scope.launch {
-                        if (text.isNotBlank()) {
-                            dao.insert(User(username = text))
-                            text = "" // On vide le champ après l'ajout
+                            Text(user.username)
                         }
                     }
-                }) {
-                    Text("OK")
                 }
-            }
-            // LISTE DYNAMIQUE
-            LazyColumn {
-                // Pour chaque tâche dans la liste 'tasks'
-                items(users) { user ->
-                    // Un bouton qui affiche le titre et supprime au clic
-                    TextButton(onClick = {
-                        scope.launch { dao.delete(user) }
-                    }) {
-                        Text("${user.username} (Supprimer)")
-                    }
-                }
-            }
-            FoodAnalyticTheme {
                 FoodAnalyticApp()
             }
         }
