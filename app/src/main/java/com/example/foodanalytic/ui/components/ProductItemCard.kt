@@ -22,9 +22,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.example.foodanalytic.api.model.Product
 
 @Composable
-fun ProductItemCard(index: Int) {
+fun ProductItemCard(product: Product) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
@@ -53,23 +54,21 @@ fun ProductItemCard(index: Int) {
 
             Column {
                 Text(
-                    text = "Produit #${index + 1}",
+                    text = product.name,
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold
                 )
-                Text(text = "Marque du produit", style = MaterialTheme.typography.bodyMedium)
+                Text(
+                    text = product.brand ?: "Marque inconnue",
+                    style = MaterialTheme.typography.bodyMedium
+                )
 
-                // Indicateur de score fictif (Yuka style)
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Surface(
-                        modifier = Modifier.size(10.dp),
-                        shape = RoundedCornerShape(5.dp),
-                        color = if (index % 2 == 0) Color.Green else Color.Red
-                    ) {}
-                    Spacer(modifier = Modifier.width(4.dp))
+                // Indicateur de calories
+                product.calories?.let {
                     Text(
-                        text = if (index % 2 == 0) "Excellent" else "Médiocre",
-                        style = MaterialTheme.typography.bodySmall
+                        text = "${it.toInt()} kcal",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.primary
                     )
                 }
             }

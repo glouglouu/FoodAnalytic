@@ -9,24 +9,15 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface UserDao {
-    /**
-     * @Query : On écrit du SQL pur. Ici, on récupère tout.
-     * Flow : Permet d'observer la base en temps réel. Si une donnée change,
-     * l'interface est notifiée automatiquement sans relancer la requête.
-     */
     @Query("SELECT * FROM User")
     fun getAll(): Flow<List<User>>
-    /**
-     * @Insert : Ajoute un nouvel utilisateur.
-     * suspend : Indique que cette fonction est asynchrone (Coroutine).
-     * Elle doit s'exécuter en arrière-plan pour ne pas bloquer l'écran.
-     */
+
+    @Query("SELECT * FROM User WHERE username = :username LIMIT 1")
+    suspend fun getUserByUsername(username: String): User?
+
     @Insert
     suspend fun insert(user: User)
-    /**
-     * @Delete : Supprime un utilisateur précis de la base.
-     * suspend : Également exécuté en arrière-plan.
-     */
+
     @Delete
     suspend fun delete(user: User)
 }

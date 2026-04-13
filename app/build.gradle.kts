@@ -59,6 +59,11 @@ dependencies {
     implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.compose.material3.adaptive.navigation.suite)
     implementation(libs.androidx.compose.material.icons.extended)
+
+    // Scanner de code-barres Google
+    implementation(libs.play.services.code.scanner)
+    implementation(libs.barcode.scanning)
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

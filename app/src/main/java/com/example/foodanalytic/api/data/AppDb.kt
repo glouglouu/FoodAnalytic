@@ -12,7 +12,6 @@ import com.example.foodanalytic.api.model.User
  */
 @Database(entities = [User::class, Product::class], version = 2)
 abstract class AppDb : RoomDatabase() {
-    // Cette fonction permet de récupérer les commandes du DAO.
     abstract fun userDao(): UserDao
     abstract fun productDao(): ProductDao
 }
