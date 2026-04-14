@@ -23,7 +23,7 @@ import com.example.foodanalytic.ui.components.ProductItemCard
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun FavoritesScreen(productDao: ProductDao) {
+fun FavoritesScreen(productDao: ProductDao, onProductClick: (Int) -> Unit) {
 
     val products by productDao.getAll().collectAsState(initial = emptyList())
 
@@ -56,7 +56,7 @@ fun FavoritesScreen(productDao: ProductDao) {
             } else {
                 LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     items(products) { product ->
-                        ProductItemCard(product = product)
+                        ProductItemCard(product = product, onClick = { onProductClick(product.id) })
                     }
                 }
             }

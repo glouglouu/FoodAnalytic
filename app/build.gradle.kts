@@ -65,6 +65,9 @@ dependencies {
     implementation(libs.barcode.scanning)
     implementation(libs.retrofit)
     implementation(libs.converter.gson)
+    
+    // Chargement d'images
+    implementation(libs.coil.compose)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

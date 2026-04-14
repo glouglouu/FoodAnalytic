@@ -6,9 +6,9 @@ import com.example.foodanalytic.api.model.Product
 import com.example.foodanalytic.api.model.User
 
 /**
- * Version augmentée à 3 pour forcer la migration suite à l'ajout de champs dans Product
+ * Version 4 suite à l'ajout des URLs d'images supplémentaires
  */
-@Database(entities = [User::class, Product::class], version = 3)
+@Database(entities = [User::class, Product::class], version = 4)
 abstract class AppDb : RoomDatabase() {
     abstract fun userDao(): UserDao
     abstract fun productDao(): ProductDao

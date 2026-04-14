@@ -15,6 +15,7 @@ svcCodeScanner = "16.1.0"
 barcodescanner = "17.3.0"
 retrofit = "2.11.0"
 converter-gson = "2.11.0"
+coil = "2.7.0"
 
 
 
@@ -44,6 +45,7 @@ play-services-code-scanner = { group = "com.google.android.gms", name = "play-se
 barcode-scanning = {group = "com.google.mlkit", name = "barcode-scanning", version.ref = "barcodescanner"}
 retrofit = { group = "com.squareup.retrofit2", name = "retrofit", version.ref = "retrofit" }
 converter-gson = { module = "com.squareup.retrofit2:converter-gson", version.ref = "converter-gson" }
+coil-compose = { module = "io.coil-kt:coil-compose", version.ref = "coil" }
 
 
 

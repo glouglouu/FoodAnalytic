@@ -14,6 +14,10 @@ data class ApiProduct(
     @SerializedName("product_name") val productName: String?,
     val brands: String?,
     @SerializedName("image_url") val imageUrl: String?,
+    @SerializedName("image_front_url") val imageFrontUrl: String?,
+    @SerializedName("image_ingredients_url") val imageIngredientsUrl: String?,
+    @SerializedName("image_nutrition_url") val imageNutritionUrl: String?,
+    @SerializedName("image_packaging_url") val imagePackagingUrl: String?,
     @SerializedName("nutriscore_grade") val nutriscoreGrade: String?,
     val nutriments: Nutriments?
 ) {
@@ -23,6 +27,10 @@ data class ApiProduct(
             name = productName ?: "Produit inconnu",
             brand = brands,
             imageUrl = imageUrl,
+            frontImageUrl = imageFrontUrl,
+            ingredientsImageUrl = imageIngredientsUrl,
+            nutritionImageUrl = imageNutritionUrl,
+            packagingImageUrl = imagePackagingUrl,
             nutriscore = nutriscoreGrade,
             calories = nutriments?.energyKcal100g,
             proteins = nutriments?.proteins100g,
