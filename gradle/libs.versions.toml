@@ -13,6 +13,9 @@ composeBom = "2024.09.00"
 roomVersion = "2.8.4"
 svcCodeScanner = "16.1.0"
 barcodescanner = "17.3.0"
+retrofit = "2.11.0"
+converter-gson = "2.11.0"
+
 
 
 [libraries]
@@ -39,6 +42,10 @@ androidx-compose-material3-adaptive-navigation-suite = { group = "androidx.compo
 kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "kotlinxCoroutinesAndroid" }
 play-services-code-scanner = { group = "com.google.android.gms", name = "play-services-code-scanner", version.ref = "svcCodeScanner" }
 barcode-scanning = {group = "com.google.mlkit", name = "barcode-scanning", version.ref = "barcodescanner"}
+retrofit = { group = "com.squareup.retrofit2", name = "retrofit", version.ref = "retrofit" }
+converter-gson = { module = "com.squareup.retrofit2:converter-gson", version.ref = "converter-gson" }
+
+
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

@@ -30,32 +30,38 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.foodanalytic.api.data.ProductDao
+import com.example.foodanalytic.api.network.RetrofitClient
 import com.example.foodanalytic.ui.components.ProductItemCard
 import com.google.mlkit.vision.barcode.common.Barcode
 import com.google.mlkit.vision.codescanner.GmsBarcodeScannerOptions
 import com.google.mlkit.vision.codescanner.GmsBarcodeScanning
+import kotlinx.coroutines.launch
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(productDao: ProductDao) {
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    
+    // Configuration du scanner ML Kit
     val options = GmsBarcodeScannerOptions.Builder()
         .setBarcodeFormats(Barcode.FORMAT_ALL_FORMATS)
         .build()
-
     val scanner = GmsBarcodeScanning.getClient(context, options)
 
+    // Observation des produits stockés localement
     val products by productDao.getAll().collectAsState(initial = emptyList())
 
-    var text by remember { mutableStateOf("") }
-    var active by remember { mutableStateOf(false) }
+    var queryText by remember { mutableStateOf("") }
+    var isSearchActive by remember { mutableStateOf(false) }
 
     Scaffold(
         floatingActionButton = {
@@ -63,15 +69,37 @@ fun HomeScreen(productDao: ProductDao) {
                 onClick = {
                     scanner.startScan()
                         .addOnSuccessListener { barcode ->
-                            val code = barcode.rawValue
-                            Toast.makeText(context, "Produit scanné : $code", Toast.LENGTH_SHORT).show()
+                            val code = barcode.rawValue ?: return@addOnSuccessListener
+                            
+                            scope.launch {
+                                try {
+                                    val response = RetrofitClient.instance.getProductInfo(code)
+                                    if (response.isSuccessful) {
+                                        val body = response.body()
+                                        // Open Food Facts renvoie status = 1 si le produit est trouvé
+                                        if (body?.status == 1 && body.product != null) {
+                                            // Conversion propre du modèle API vers notre modèle local
+                                            val newProduct = body.product.toProduct(code)
+                                            
+                                            productDao.insert(newProduct)
+                                            Toast.makeText(context, "Produit ajouté : ${newProduct.name}", Toast.LENGTH_SHORT).show()
+                                        } else {
+                                            Toast.makeText(context, "Produit non trouvé sur Open Food Facts", Toast.LENGTH_SHORT).show()
+                                        }
+                                    } else {
+                                        Toast.makeText(context, "Erreur API : ${response.code()}", Toast.LENGTH_SHORT).show()
+                                    }
+                                } catch (e: Exception) {
+                                    Toast.makeText(context, "Erreur réseau : ${e.message}", Toast.LENGTH_SHORT).show()
+                                }
+                            }
                         }
                         .addOnFailureListener { e ->
-                            Toast.makeText(context, "Erreur scan : ${e.message}", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(context, "Erreur scanner : ${e.message}", Toast.LENGTH_SHORT).show()
                         }
                 },
                 icon = { Icon(Icons.Default.QrCodeScanner, contentDescription = null) },
-                text = { Text("Scanner un produit") },
+                text = { Text("Scanner") },
                 containerColor = MaterialTheme.colorScheme.primaryContainer,
                 contentColor = MaterialTheme.colorScheme.onPrimaryContainer
             )
@@ -82,30 +110,32 @@ fun HomeScreen(productDao: ProductDao) {
             modifier = Modifier
                 .padding(innerPadding)
                 .fillMaxSize()
-                .padding(16.dp)
+                .padding(horizontal = 16.dp)
         ) {
+            Spacer(modifier = Modifier.height(16.dp))
+
             SearchBar(
                 modifier = Modifier.fillMaxWidth(),
                 inputField = {
                     SearchBarDefaults.InputField(
-                        query = text,
-                        onQueryChange = { text = it },
-                        onSearch = { active = false },
-                        expanded = active,
-                        onExpandedChange = { active = it },
+                        query = queryText,
+                        onQueryChange = { queryText = it },
+                        onSearch = { isSearchActive = false },
+                        expanded = isSearchActive,
+                        onExpandedChange = { isSearchActive = it },
                         placeholder = { Text("Rechercher un produit...") },
                         leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
                         trailingIcon = {
-                            if (active) {
-                                IconButton(onClick = { text = "" }) {
+                            if (isSearchActive) {
+                                IconButton(onClick = { queryText = "" }) {
                                     Icon(Icons.Default.Close, contentDescription = "Effacer")
                                 }
                             }
                         }
                     )
                 },
-                expanded = active,
-                onExpandedChange = { active = it },
+                expanded = isSearchActive,
+                onExpandedChange = { isSearchActive = it },
             ) {
                 LazyColumn(
                     modifier = Modifier.fillMaxWidth(),
@@ -134,7 +164,10 @@ fun HomeScreen(productDao: ProductDao) {
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             } else {
-                LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                LazyColumn(
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                    contentPadding = PaddingValues(bottom = 80.dp) // Pour éviter que le FAB cache le dernier item
+                ) {
                     items(products) { product ->
                         ProductItemCard(product = product)
                     }

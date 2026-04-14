@@ -63,6 +63,8 @@ dependencies {
     // Scanner de code-barres Google
     implementation(libs.play.services.code.scanner)
     implementation(libs.barcode.scanning)
+    implementation(libs.retrofit)
+    implementation(libs.converter.gson)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

@@ -9,10 +9,15 @@ import androidx.room.PrimaryKey
 @Entity
 data class Product(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
+    val barcode: String?,
     val name: String,
     val brand: String?,
+    val imageUrl: String?,
+    val nutriscore: String?,
     val calories: Double?,
     val proteins: Double?,
     val carbohydrates: Double?,
-    val fats: Double?
+    val fats: Double?,
+    val salt: Double?,
+    val sugars: Double?
 )
