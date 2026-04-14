@@ -8,19 +8,16 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffold
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.room.Room
 import com.example.foodanalytic.api.data.AppDb
 import com.example.foodanalytic.api.data.ProductDao
 import com.example.foodanalytic.api.data.UserDao
-import com.example.foodanalytic.ui.screens.FavoritesScreen
+import com.example.foodanalytic.api.model.User
 import com.example.foodanalytic.ui.screens.HomeScreen
+import com.example.foodanalytic.ui.screens.LoginScreen
 import com.example.foodanalytic.ui.screens.ProductDetailScreen
 import com.example.foodanalytic.ui.screens.ProfileScreen
 import com.example.foodanalytic.ui.theme.FoodAnalyticTheme
@@ -42,14 +39,29 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             FoodAnalyticTheme {
-                FoodAnalyticApp(userDao, productDao)
+                // Gestion de l'utilisateur connecté
+                var currentUser by rememberSaveable { mutableStateOf<User?>(null) }
+
+                if (currentUser == null) {
+                    LoginScreen(userDao = userDao, onLoginSuccess = { currentUser = it })
+                } else {
+                    FoodAnalyticApp(
+                        currentUser = currentUser!!,
+                        productDao = productDao,
+                        onLogout = { currentUser = null }
+                    )
+                }
             }
         }
     }
 }
 
 @Composable
-fun FoodAnalyticApp(userDao: UserDao, productDao: ProductDao) {
+fun FoodAnalyticApp(
+    currentUser: User,
+    productDao: ProductDao,
+    onLogout: () -> Unit
+) {
     var currentDestination by rememberSaveable { mutableStateOf(AppDestinations.HOME) }
     var selectedProductId by rememberSaveable { mutableIntStateOf(-1) }
 
@@ -64,12 +76,7 @@ fun FoodAnalyticApp(userDao: UserDao, productDao: ProductDao) {
             navigationSuiteItems = {
                 AppDestinations.entries.forEach {
                     item(
-                        icon = {
-                            Icon(
-                                it.icon,
-                                contentDescription = it.label
-                            )
-                        },
+                        icon = { Icon(it.icon, contentDescription = it.label) },
                         label = { Text(it.label) },
                         selected = it == currentDestination,
                         onClick = { currentDestination = it }
@@ -79,8 +86,10 @@ fun FoodAnalyticApp(userDao: UserDao, productDao: ProductDao) {
         ) {
             when (currentDestination) {
                 AppDestinations.HOME -> HomeScreen(productDao, onProductClick = { selectedProductId = it })
-                AppDestinations.FAVORITES -> FavoritesScreen(productDao, onProductClick = { selectedProductId = it })
-                AppDestinations.PROFILE -> ProfileScreen()
+                AppDestinations.PROFILE -> ProfileScreen(
+                    user = currentUser,
+                    onLogout = onLogout
+                )
             }
         }
     }
@@ -91,6 +100,5 @@ enum class AppDestinations(
     val icon: ImageVector,
 ) {
     HOME("Accueil", Icons.Default.Home),
-    FAVORITES("Favoris", Icons.Default.Favorite),
     PROFILE("Profil", Icons.Default.AccountBox),
 }

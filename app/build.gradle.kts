@@ -3,6 +3,7 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.google.devtools.ksp)
+    id("kotlin-parcelize") // Ajouté pour permettre à User d'être Parcelable
 }
 
 android {
@@ -43,9 +44,8 @@ android {
 dependencies {
     // Les bibliothèques Room de base
     implementation(libs.androidx.room.runtime)
-    implementation(libs.androidx.room.ktx) // Support des Coroutines et Flow
-    ksp(libs.androidx.room.compiler) // Processeur de code Room
-    // Outils pour lier la base de données à l'interface Compose
+    implementation(libs.androidx.room.ktx)
+    ksp(libs.androidx.room.compiler)
     implementation(libs.androidx.lifecycle.runtime.compose)
     implementation(libs.kotlinx.coroutines.android)
 
@@ -60,13 +60,10 @@ dependencies {
     implementation(libs.androidx.compose.material3.adaptive.navigation.suite)
     implementation(libs.androidx.compose.material.icons.extended)
 
-    // Scanner de code-barres Google
     implementation(libs.play.services.code.scanner)
     implementation(libs.barcode.scanning)
     implementation(libs.retrofit)
     implementation(libs.converter.gson)
-    
-    // Chargement d'images
     implementation(libs.coil.compose)
 
     testImplementation(libs.junit)

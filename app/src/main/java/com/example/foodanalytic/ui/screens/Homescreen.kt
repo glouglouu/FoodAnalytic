@@ -20,7 +20,9 @@ import com.example.foodanalytic.ui.components.ProductItemCard
 import com.google.mlkit.vision.barcode.common.Barcode
 import com.google.mlkit.vision.codescanner.GmsBarcodeScannerOptions
 import com.google.mlkit.vision.codescanner.GmsBarcodeScanning
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -51,16 +53,24 @@ fun HomeScreen(productDao: ProductDao, onProductClick: (Int) -> Unit) {
                                         val body = response.body()
                                         if (body?.status == 1 && body.product != null) {
                                             val newProduct = body.product.toProduct(code)
-                                            productDao.insert(newProduct)
+                                            
+                                            // Sécurisation de l'insertion sur le thread IO
+                                            withContext(Dispatchers.IO) {
+                                                productDao.insert(newProduct)
+                                            }
+                                            
                                             Toast.makeText(context, "Produit ajouté : ${newProduct.name}", Toast.LENGTH_SHORT).show()
                                         } else {
                                             Toast.makeText(context, "Produit non trouvé", Toast.LENGTH_SHORT).show()
                                         }
                                     }
                                 } catch (e: Exception) {
-                                    Toast.makeText(context, "Erreur : ${e.message}", Toast.LENGTH_SHORT).show()
+                                    Toast.makeText(context, "Erreur scan : ${e.message}", Toast.LENGTH_LONG).show()
                                 }
                             }
+                        }
+                        .addOnFailureListener { e ->
+                            Toast.makeText(context, "Erreur scanner : ${e.message}", Toast.LENGTH_SHORT).show()
                         }
                 },
                 icon = { Icon(Icons.Default.QrCodeScanner, contentDescription = null) },
@@ -113,12 +123,21 @@ fun HomeScreen(productDao: ProductDao, onProductClick: (Int) -> Unit) {
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            LazyColumn(
-                verticalArrangement = Arrangement.spacedBy(12.dp),
-                contentPadding = PaddingValues(bottom = 80.dp)
-            ) {
-                items(products) { product ->
-                    ProductItemCard(product = product, onClick = { onProductClick(product.id) })
+            if (products.isEmpty()) {
+                Text(
+                    text = "Aucun produit scanné pour le moment.",
+                    modifier = Modifier.padding(top = 8.dp),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            } else {
+                LazyColumn(
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                    contentPadding = PaddingValues(bottom = 80.dp)
+                ) {
+                    items(products) { product ->
+                        ProductItemCard(product = product, onClick = { onProductClick(product.id) })
+                    }
                 }
             }
         }
