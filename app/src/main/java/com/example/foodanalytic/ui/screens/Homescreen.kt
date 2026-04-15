@@ -39,6 +39,19 @@ fun HomeScreen(productDao: ProductDao, onProductClick: (Int) -> Unit) {
     var queryText by remember { mutableStateOf("") }
     var isSearchActive by remember { mutableStateOf(false) }
 
+    // Filtrage dynamique de la liste des produits
+    val filteredProducts = remember(products, queryText) {
+        if (queryText.isBlank()) {
+            products
+        } else {
+            products.filter { product ->
+                product.name.contains(queryText, ignoreCase = true) ||
+                        (product.brand?.contains(queryText, ignoreCase = true) == true) ||
+                        (product.barcode?.contains(queryText) == true)
+            }
+        }
+    }
+
     Scaffold(
         floatingActionButton = {
             ExtendedFloatingActionButton(
@@ -54,7 +67,6 @@ fun HomeScreen(productDao: ProductDao, onProductClick: (Int) -> Unit) {
                                         if (body?.status == 1 && body.product != null) {
                                             val newProduct = body.product.toProduct(code)
                                             
-                                            // Sécurisation de l'insertion sur le thread IO
                                             withContext(Dispatchers.IO) {
                                                 productDao.insert(newProduct)
                                             }
@@ -99,7 +111,7 @@ fun HomeScreen(productDao: ProductDao, onProductClick: (Int) -> Unit) {
                         placeholder = { Text("Rechercher un produit...") },
                         leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
                         trailingIcon = {
-                            if (isSearchActive) {
+                            if (queryText.isNotEmpty()) {
                                 IconButton(onClick = { queryText = "" }) {
                                     Icon(Icons.Default.Close, contentDescription = "Effacer")
                                 }
@@ -110,22 +122,34 @@ fun HomeScreen(productDao: ProductDao, onProductClick: (Int) -> Unit) {
                 expanded = isSearchActive,
                 onExpandedChange = { isSearchActive = it },
             ) {
-                // Suggestions simplifiées
+                // Liste affichée dans la barre de recherche lorsqu'elle est active (étendue)
+                LazyColumn(
+                    modifier = Modifier.fillMaxWidth(),
+                    contentPadding = PaddingValues(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    items(filteredProducts) { product ->
+                        ProductItemCard(product = product, onClick = {
+                            onProductClick(product.id)
+                            isSearchActive = false
+                        })
+                    }
+                }
             }
 
             Spacer(modifier = Modifier.height(24.dp))
 
             Text(
-                text = "Historique des scans",
+                text = if (queryText.isEmpty()) "Historique des scans" else "Résultats de recherche",
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold
             )
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            if (products.isEmpty()) {
+            if (filteredProducts.isEmpty()) {
                 Text(
-                    text = "Aucun produit scanné pour le moment.",
+                    text = if (queryText.isEmpty()) "Aucun produit scanné pour le moment." else "Aucun produit trouvé pour \"$queryText\"",
                     modifier = Modifier.padding(top = 8.dp),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -135,7 +159,7 @@ fun HomeScreen(productDao: ProductDao, onProductClick: (Int) -> Unit) {
                     verticalArrangement = Arrangement.spacedBy(12.dp),
                     contentPadding = PaddingValues(bottom = 80.dp)
                 ) {
-                    items(products) { product ->
+                    items(filteredProducts) { product ->
                         ProductItemCard(product = product, onClick = { onProductClick(product.id) })
                     }
                 }
